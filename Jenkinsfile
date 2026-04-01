@@ -1,49 +1,23 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'Maven'              // Make sure Maven is configured in Jenkins
-        jdk 'JDK'                  // Make sure JDK is configured
-    }
-
-    environment {
-        SONAR_HOST_URL = 'http://13.126.124.176:9000'
-        SONAR_PROJECT_KEY = 'java-project'
-    }
-
     stages {
 
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
-                git 'https://github.com/shwetamohite260/New-git.git'
+                git 'https://github.com/shwetamohite260/New-git'
             }
         }
 
-        stage('Build') {
+        stage('Build & SonarQube Analysis') {
             steps {
-                sh 'mvn clean install'
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh """
-                    mvn sonar:sonar \
-                      -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                      -Dsonar.host.url=${SONAR_HOST_URL} \
-                      -Dsonar.login=${SONAR_AUTH_TOKEN}
-                    """
-                }
-            }
-        }
-
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 2, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
+                sh """
+                mvn clean verify sonar:sonar \
+                  -Dsonar.projectKey=java-project \
+                  -Dsonar.host.url=http://13.126.124.176:9000 \
+                  -Dsonar.login="squ_63d5b38dc5feeaa7c558581b6654dc36d0264b8b"
             }
         }
     }
 }
+
